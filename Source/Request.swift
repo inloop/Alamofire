@@ -152,8 +152,7 @@ public class Request {
         return self
     }
     
-    public func customContentLengthEvaluator(closure: (NSHTTPURLResponse?)->Int64) -> Self {
-
+    public func customContentLengthEvaluator(closure: (NSHTTPURLResponse?)->Int64?) -> Self {
         self.delegate.customContentLength = closure
         return self
     }
