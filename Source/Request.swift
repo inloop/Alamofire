@@ -432,7 +432,7 @@ public class Request {
                 }
 
                 totalBytesReceived += data.length
-                let totalBytesExpected = dataTask.response?.expectedContentLength ?? (self.customContentLength?(dataTask.response as? NSHTTPURLResponse) ?? NSURLSessionTransferSizeUnknown)
+                let totalBytesExpected = dataTask.response?.expectedContentLength == NSURLSessionTransferSizeUnknown ? (self.customContentLength?(dataTask.response as? NSHTTPURLResponse) ?? NSURLSessionTransferSizeUnknown) : NSURLSessionTransferSizeUnknown
 
                 progress.totalUnitCount = totalBytesExpected
                 progress.completedUnitCount = totalBytesReceived
