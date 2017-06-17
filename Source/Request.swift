@@ -152,8 +152,8 @@ public class Request {
         return self
     }
     
-    public func customContentLengthEvaluator(closure: (NSHTTPURLResponse?)->Int64?) -> Self {
-        self.delegate.customContentLength = closure
+    public func customContentLengthEvaluator(closure: (NSHTTPURLResponse?)->Int64) -> Self {
+        self.delegate.customContentLengthEvaluator = closure
         return self
     }
 
@@ -234,7 +234,7 @@ public class Request {
         var initialResponseTime: CFAbsoluteTime?
         var credential: NSURLCredential?
         
-        var customContentLength: ((NSHTTPURLResponse?)->Int64?)?
+        var customContentLengthEvaluator: ((NSHTTPURLResponse?)->Int64)?
 
         init(task: NSURLSessionTask) {
             self.task = task
@@ -432,7 +432,14 @@ public class Request {
                 }
 
                 totalBytesReceived += data.length
-                let totalBytesExpected = dataTask.response?.expectedContentLength == NSURLSessionTransferSizeUnknown ? (self.customContentLength?(dataTask.response as? NSHTTPURLResponse) ?? NSURLSessionTransferSizeUnknown) : NSURLSessionTransferSizeUnknown
+                
+                let totalBytesExpected: Int64
+                if let customContentLengthEvaluator = self.customContentLengthEvaluator {
+                    totalBytesExpected = customContentLengthEvaluator(dataTask.response as? NSHTTPURLResponse)
+                }
+                else {
+                    totalBytesExpected = dataTask.response?.expectedContentLength ?? NSURLSessionTransferSizeUnknown
+                }
 
                 progress.totalUnitCount = totalBytesExpected
                 progress.completedUnitCount = totalBytesReceived
