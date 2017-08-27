@@ -648,5 +648,13 @@ open class StreamRequest: Request {
         }
     }
 }
+    
+extension Request {
+    
+    func customContentLengthEvaluator(evaluatorClosure: @escaping (HTTPURLResponse?) -> Int64?) -> Self {
+        self.delegate.customContentLengthEvaluator = evaluatorClosure
+        return self
+    }
+}
 
 #endif

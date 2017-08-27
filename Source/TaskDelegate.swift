@@ -53,6 +53,8 @@ open class TaskDelegate: NSObject {
     var credential: URLCredential?
     var metrics: AnyObject? // URLSessionTaskMetrics
     
+    var customContentLengthEvaluator: ((HTTPURLResponse?) -> Int64?)?
+    
     private var _task: URLSessionTask? {
         didSet { reset() }
     }
@@ -270,7 +272,8 @@ class DataTaskDelegate: TaskDelegate, URLSessionDataDelegate {
 
             let bytesReceived = Int64(data.count)
             totalBytesReceived += bytesReceived
-            let totalBytesExpected = dataTask.response?.expectedContentLength ?? NSURLSessionTransferSizeUnknown
+            
+            let totalBytesExpected = dataTask.response?.expectedContentLength == NSURLSessionTransferSizeUnknown ? (self.customContentLengthEvaluator?(dataTask.response as? HTTPURLResponse) ?? NSURLSessionTransferSizeUnknown) : NSURLSessionTransferSizeUnknown
 
             progress.totalUnitCount = totalBytesExpected
             progress.completedUnitCount = totalBytesReceived
