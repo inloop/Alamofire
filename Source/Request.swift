@@ -797,6 +797,8 @@ public class DataRequest: Request {
     private var protectedData: Protector<Data?> = Protector(nil)
     public var data: Data? { return protectedData.directValue }
 
+    internal var customContentLengthEvaluator: ((HTTPURLResponse?) -> Int64?)?
+
     init(id: UUID = UUID(),
          convertible: URLRequestConvertible,
          underlyingQueue: DispatchQueue,
@@ -837,7 +839,13 @@ public class DataRequest: Request {
 
     func updateDownloadProgress() {
         let totalBytesRecieved = Int64(data?.count ?? 0)
-        let totalBytesExpected = task?.response?.expectedContentLength ?? NSURLSessionTransferSizeUnknown
+        let totalBytesExpected: Int64
+
+        if let expectedContentLength = task?.response?.expectedContentLength {
+            totalBytesExpected = expectedContentLength != NSURLSessionTransferSizeUnknown ? expectedContentLength : (customContentLengthEvaluator?(task?.response as? HTTPURLResponse) ?? NSURLSessionTransferSizeUnknown)
+        } else {
+            totalBytesExpected = NSURLSessionTransferSizeUnknown
+        }
 
         downloadProgress.totalUnitCount = totalBytesExpected
         downloadProgress.completedUnitCount = totalBytesRecieved
@@ -1153,10 +1161,10 @@ extension UploadRequest.Uploadable: UploadableConvertible {
     }
 }
     
-extension Request {
+extension DataRequest {
     
     public func customContentLengthEvaluator(evaluatorClosure: @escaping (HTTPURLResponse?) -> Int64?) -> Self {
-        self.delegate.customContentLengthEvaluator = evaluatorClosure
+        self.customContentLengthEvaluator = evaluatorClosure
         return self
     }
 }
